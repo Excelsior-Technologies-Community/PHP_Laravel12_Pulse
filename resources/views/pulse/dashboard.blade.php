@@ -87,6 +87,7 @@
     <div class="container py-5">
 
         <div class="header-box text-center">
+
             <h1 class="page-title">
                 <i class="bi bi-speedometer2 text-primary"></i>
                 Laravel Pulse Dashboard
@@ -95,6 +96,26 @@
             <p class="page-subtitle">
                 Monitor application statistics, users and Pulse activities in real time.
             </p>
+
+            <div class="d-flex justify-content-center flex-wrap gap-2 mt-4">
+
+                <a href="/pulse" class="btn btn-dark">
+                    <i class="bi bi-speedometer2"></i>
+                    Official Pulse
+                </a>
+
+                <a href="{{ route('pulse.analytics') }}" class="btn btn-primary">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    Analytics
+                </a>
+
+                <a href="{{ route('pulse.export') }}" class="btn btn-success">
+                    <i class="bi bi-download"></i>
+                    Export CSV
+                </a>
+
+            </div>
+
         </div>
 
         <div class="row g-4">
