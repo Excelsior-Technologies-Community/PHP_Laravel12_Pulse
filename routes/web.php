@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PulseDashboardController;
 use App\Http\Controllers\PulseExportController;
+use App\Http\Controllers\PulseAnalyticsController;
 use Illuminate\Support\Facades\DB;
 
 Route::get('/', function () {
@@ -34,3 +35,5 @@ Route::get('/pulse-export', function () {
 
 Route::get('/pulse-export/download', [PulseExportController::class, 'export'])
     ->name('pulse.export.csv');
+
+Route::get('/pulse-analytics', [PulseAnalyticsController::class, 'index'])->name('pulse.analytics');
