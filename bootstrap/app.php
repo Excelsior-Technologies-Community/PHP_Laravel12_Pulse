@@ -10,7 +10,12 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function ($middleware) {
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->validateCsrfTokens(except: [
+            'pulse/simulator/*',
+            'pulse/incidents/*',
+            'pulse/business-event',
+        ]);
 
         $middleware->append(
             \App\Http\Middleware\ActivityTracker::class
