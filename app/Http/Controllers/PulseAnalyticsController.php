@@ -2,15 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\BusinessPulseRecorder;
+use App\Services\PulseAlertService;
 use Illuminate\Support\Facades\DB;
 
 class PulseAnalyticsController extends Controller
 {
+    protected BusinessPulseRecorder $businessRecorder;
+    protected PulseAlertService $alertService;
+
+    public function __construct(BusinessPulseRecorder $businessRecorder, PulseAlertService $alertService)
+    {
+        $this->businessRecorder = $businessRecorder;
+        $this->alertService = $alertService;
+    }
+
     public function index()
     {
         // Dashboard Statistics
         $totalUsers = DB::table('users')->count();
-
         $totalPulseEntries = DB::table('pulse_entries')->count();
 
         $slowRequests = DB::table('pulse_entries')
@@ -25,23 +35,18 @@ class PulseAnalyticsController extends Controller
             ->where('type', 'cache_miss')
             ->count();
 
+        $slowQueries = DB::table('pulse_entries')
+            ->where('type', 'slow_query')
+            ->count();
+
         $activityLogs = DB::table('activity_logs')->count();
 
-        /*
-        |--------------------------------------------------------------------------
-        | System Health Status
-        |--------------------------------------------------------------------------
-        */
+        // Real-Time System Health Status via Threshold Rules Engine
+        $status = $this->alertService->getSystemHealthStatus();
+        $openIncidentsCount = DB::table('pulse_incidents')->where('status', '!=', 'resolved')->count();
 
-        $status = 'Healthy';
-
-        if ($slowRequests > 10 || $exceptions > 10) {
-            $status = 'Warning';
-        }
-
-        if ($slowRequests > 25 || $exceptions > 25) {
-            $status = 'Critical';
-        }
+        // Business Metrics (Feature 4)
+        $businessSummary = $this->businessRecorder->getSummary();
 
         // Latest Pulse Records
         $latestEntries = DB::table('pulse_entries')
@@ -57,10 +62,7 @@ class PulseAnalyticsController extends Controller
 
         // Top Pulse Types
         $pulseTypes = DB::table('pulse_entries')
-            ->select(
-                'type',
-                DB::raw('COUNT(*) as total')
-            )
+            ->select('type', DB::raw('COUNT(*) as total'))
             ->groupBy('type')
             ->orderByDesc('total')
             ->get();
@@ -83,8 +85,11 @@ class PulseAnalyticsController extends Controller
                 'slowRequests',
                 'exceptions',
                 'cacheMisses',
+                'slowQueries',
                 'activityLogs',
                 'status',
+                'openIncidentsCount',
+                'businessSummary',
                 'latestEntries',
                 'latestActivities',
                 'pulseTypes',

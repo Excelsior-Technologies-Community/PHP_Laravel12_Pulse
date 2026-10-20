@@ -1,548 +1,237 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laravel Pulse Analytics</title>
+@section('title', 'Laravel Pulse Analytics & Telemetry')
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+@section('content')
 
-    <style>
-        body {
-            background: #f4f7fb;
-            font-family: "Segoe UI", sans-serif;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #2563eb, #4f46e5);
-            color: #fff;
-            padding: 40px;
-            border-radius: 20px;
-            margin-bottom: 35px;
-        }
-
-        .stat-card {
-            border: none;
-            border-radius: 18px;
-            color: #fff;
-            transition: .3s;
-            overflow: hidden;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, .15);
-        }
-
-        .stat-icon {
-            font-size: 48px;
-            opacity: .20;
-        }
-
-        .stat-value {
-            font-size: 38px;
-            font-weight: bold;
-        }
-
-        .card-blue {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        }
-
-        .card-green {
-            background: linear-gradient(135deg, #16a34a, #15803d);
-        }
-
-        .card-red {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
-        }
-
-        .card-warning {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-        }
-
-        .card-purple {
-            background: linear-gradient(135deg, #7c3aed, #6d28d9);
-        }
-
-        .card-dark {
-            background: linear-gradient(135deg, #111827, #1f2937);
-        }
-
-        .table-card {
-            border: none;
-            border-radius: 18px;
-            overflow: hidden;
-        }
-
-        .table thead {
-            background: #0f172a;
-            color: white;
-        }
-
-        .progress {
-            height: 10px;
-        }
-    </style>
-
-</head>
-
-<body>
-
-    <div class="container py-5">
-
-        <div class="header">
-
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-
-                <div>
-
-                    <h1>
-                        <i class="bi bi-speedometer2"></i>
-                        Laravel Pulse Analytics
-                    </h1>
-
-                    <p class="mb-2">
-                        Real-Time Monitoring Dashboard
-                    </p>
-
-                    @if($status == 'Healthy')
-
-                    <span class="badge bg-success fs-6">
-                        <i class="bi bi-check-circle-fill"></i>
-                        System Healthy
-                    </span>
-
-                    @elseif($status == 'Warning')
-
-                    <span class="badge bg-warning text-dark fs-6">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                        Warning
-                    </span>
-
-                    @else
-
-                    <span class="badge bg-danger fs-6">
-                        <i class="bi bi-x-circle-fill"></i>
-                        Critical
-                    </span>
-
-                    @endif
-
-                </div>
-
-                <div class="d-flex gap-2 flex-wrap">
-
-                    <a href="/pulse"
-                        class="btn btn-light">
-
-                        <i class="bi bi-speedometer2"></i>
-                        Pulse
-
-                    </a>
-
-                    <a href="/custom-pulse"
-                        class="btn btn-warning">
-
-                        <i class="bi bi-house"></i>
-                        Dashboard
-
-                    </a>
-
-                    <a href="{{ route('pulse.export') }}"
-                        class="btn btn-success">
-
-                        <i class="bi bi-download"></i>
-                        Export
-
-                    </a>
-
-                </div>
-
-            </div>
-
+<!-- Header Banner -->
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h3 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                <span class="badge bg-primary bg-opacity-10 text-primary p-2 rounded-3"><i class="bi bi-graph-up fs-5"></i></span>
+                Pulse Analytics & Performance Center
+            </h3>
+            <span class="badge {{ $status === 'Critical' ? 'bg-danger' : ($status === 'Warning' ? 'bg-warning text-dark' : 'bg-success') }} font-mono px-3 py-1.5 rounded-pill">
+                {{ $status }}
+            </span>
         </div>
-
-        <div class="row g-4">
-
-            <div class="col-lg-4">
-
-                <div class="stat-card card-blue p-4">
-
-                    <div class="d-flex justify-content-between">
-
-                        <div>
-
-                            <h6>Total Users</h6>
-
-                            <div class="stat-value">
-                                {{ $totalUsers }}
-                            </div>
-
-                        </div>
-
-                        <i class="bi bi-people-fill stat-icon"></i>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-4">
-
-                <div class="stat-card card-green p-4">
-
-                    <div class="d-flex justify-content-between">
-
-                        <div>
-
-                            <h6>Pulse Entries</h6>
-
-                            <div class="stat-value">
-                                {{ $totalPulseEntries }}
-                            </div>
-
-                        </div>
-
-                        <i class="bi bi-bar-chart-fill stat-icon"></i>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-4">
-
-                <div class="stat-card card-red p-4">
-
-                    <div class="d-flex justify-content-between">
-
-                        <div>
-
-                            <h6>Slow Requests</h6>
-
-                            <div class="stat-value">
-                                {{ $slowRequests }}
-                            </div>
-
-                        </div>
-
-                        <i class="bi bi-clock-history stat-icon"></i>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-4">
-
-                <div class="stat-card card-warning p-4">
-
-                    <div class="d-flex justify-content-between">
-
-                        <div>
-
-                            <h6>Exceptions</h6>
-
-                            <div class="stat-value">
-                                {{ $exceptions }}
-                            </div>
-
-                        </div>
-
-                        <i class="bi bi-exclamation-triangle-fill stat-icon"></i>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-4">
-
-                <div class="stat-card card-purple p-4">
-
-                    <div class="d-flex justify-content-between">
-
-                        <div>
-
-                            <h6>Cache Misses</h6>
-
-                            <div class="stat-value">
-                                {{ $cacheMisses }}
-                            </div>
-
-                        </div>
-
-                        <i class="bi bi-database-fill-x stat-icon"></i>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-4">
-
-                <div class="stat-card card-dark p-4">
-
-                    <div class="d-flex justify-content-between">
-
-                        <div>
-
-                            <h6>Activity Logs</h6>
-
-                            <div class="stat-value">
-                                {{ $activityLogs }}
-                            </div>
-
-                        </div>
-
-                        <i class="bi bi-list-check stat-icon"></i>
-
-                    </div>
-
-                </div>
-
-            </div>
-
+        <p class="text-muted small mb-0">Inspect real-time telemetry distributions, hourly event buckets, system exceptions, and custom business activity.</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ route('pulse.simulator.index') }}" class="btn btn-warning rounded-pill px-3 shadow-sm text-dark fw-semibold">
+            <i class="bi bi-lightning-charge-fill me-1"></i> Anomaly Lab
+        </a>
+        <a href="{{ route('pulse.incidents.index') }}" class="btn btn-outline-danger rounded-pill px-3 shadow-sm">
+            <i class="bi bi-shield-exclamation me-1"></i> Incidents ({{ $openIncidentsCount }})
+        </a>
+        <a href="{{ route('pulse.reports.index') }}" class="btn btn-outline-primary rounded-pill px-3 shadow-sm">
+            <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
+        </a>
+    </div>
+</div>
+
+<!-- Primary Telemetry Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-2">
+        <div class="card card-custom p-3 text-center">
+            <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">Registered Users</small>
+            <div class="fs-4 fw-bold text-dark font-mono mt-1">{{ number_format($totalUsers) }}</div>
         </div>
-
-        <div class="row mt-5">
-
-            <div class="col-lg-6">
-
-                <div class="card table-card shadow">
-
-                    <div class="card-header bg-primary text-white">
-
-                        <h5 class="mb-0">
-
-                            Latest Pulse Entries
-
-                        </h5>
-
-                    </div>
-
-                    <div class="table-responsive">
-
-                        <table class="table table-hover mb-0">
-
-                            <thead>
-
-                                <tr>
-
-                                    <th>ID</th>
-                                    <th>Type</th>
-                                    <th>Value</th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                @forelse($latestEntries as $entry)
-
-                                <tr>
-
-                                    <td>{{ $entry->id }}</td>
-
-                                    <td>
-
-                                        <span class="badge bg-primary">
-
-                                            {{ $entry->type }}
-
-                                        </span>
-
-                                    </td>
-
-                                    <td>
-
-                                        {{ $entry->value ?? '-' }}
-
-                                    </td>
-
-                                </tr>
-
-                                @empty
-
-                                <tr>
-
-                                    <td colspan="3"
-                                        class="text-center">
-
-                                        No Pulse Data
-
-                                    </td>
-
-                                </tr>
-
-                                @endforelse
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="col-lg-6">
-
-                <div class="card table-card shadow">
-
-                    <div class="card-header bg-success text-white">
-
-                        <h5 class="mb-0">
-
-                            Recent Activity
-
-                        </h5>
-
-                    </div>
-
-                    <div class="table-responsive">
-
-                        <table class="table table-hover mb-0">
-
-                            <thead>
-
-                                <tr>
-
-                                    <th>Method</th>
-                                    <th>URL</th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                @forelse($latestActivities as $activity)
-
-                                <tr>
-
-                                    <td>
-
-                                        <span class="badge bg-dark">
-
-                                            {{ $activity->method }}
-
-                                        </span>
-
-                                    </td>
-
-                                    <td>
-
-                                        {{ $activity->url }}
-
-                                    </td>
-
-                                </tr>
-
-                                @empty
-
-                                <tr>
-
-                                    <td colspan="2"
-                                        class="text-center">
-
-                                        No Activity
-
-                                    </td>
-
-                                </tr>
-
-                                @endforelse
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </div>
-
+    </div>
+    <div class="col-sm-6 col-lg-2">
+        <div class="card card-custom p-3 text-center">
+            <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">Pulse Entries</small>
+            <div class="fs-4 fw-bold text-dark font-mono mt-1">{{ number_format($totalPulseEntries) }}</div>
         </div>
-
-        <div class="card shadow mt-5">
-
-            <div class="card-header bg-dark text-white">
-
-                <h5 class="mb-0">
-
-                    Pulse Types
-
-                </h5>
-
-            </div>
-
-            <div class="card-body">
-
-                @foreach($pulseTypes as $type)
-
-                <div class="mb-4">
-
-                    <div class="d-flex justify-content-between">
-
-                        <strong>
-
-                            {{ ucfirst(str_replace('_',' ',$type->type)) }}
-
-                        </strong>
-
-                        <strong>
-
-                            {{ $type->total }}
-
-                        </strong>
-
-                    </div>
-
-                    <div class="progress mt-2">
-
-                        <div class="progress-bar"
-
-                            style="width:{{ min($type->total,100) }}%">
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                @endforeach
-
-            </div>
-
+    </div>
+    <div class="col-sm-6 col-lg-2">
+        <div class="card card-custom p-3 text-center border-start border-warning border-4">
+            <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">Slow Requests</small>
+            <div class="fs-4 fw-bold text-warning font-mono mt-1">{{ number_format($slowRequests) }}</div>
         </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+        <div class="card card-custom p-3 text-center border-start border-danger border-4">
+            <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">Exceptions</small>
+            <div class="fs-4 fw-bold text-danger font-mono mt-1">{{ number_format($exceptions) }}</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+        <div class="card card-custom p-3 text-center border-start border-info border-4">
+            <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">Slow Queries</small>
+            <div class="fs-4 fw-bold text-info font-mono mt-1">{{ number_format($slowQueries ?? 0) }}</div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-2">
+        <div class="card card-custom p-3 text-center border-start border-primary border-4">
+            <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.7rem;">Cache Misses</small>
+            <div class="fs-4 fw-bold text-primary font-mono mt-1">{{ number_format($cacheMisses) }}</div>
+        </div>
+    </div>
+</div>
 
-        <footer class="text-center py-4 mt-5 text-muted">
-
-            <hr>
-
-            <h6 class="mb-1">
-                Laravel Pulse Analytics Dashboard
-            </h6>
-
-            <small>
-                Built with Laravel 12 • Bootstrap 5 • Laravel Pulse
-            </small>
-
-        </footer>
-
+<!-- Business Metrics Card (Feature 4) -->
+<div class="card card-custom p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-briefcase text-primary me-2"></i>Business Activity Metrics (Custom Recorder)
+            </h5>
+            <small class="text-muted">Recorded via <code>BusinessPulseRecorder</code> service into Pulse storage</small>
+        </div>
+        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 rounded-pill px-3 py-1 font-mono">
+            Feature 4
+        </span>
     </div>
 
-</body>
+    <div class="row g-3 text-center">
+        <div class="col-sm-4">
+            <div class="p-3 bg-light rounded-4 border">
+                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Activity Events (Today)</small>
+                <div class="fs-3 fw-bold text-primary font-mono mt-1">{{ number_format($businessSummary['today_activities'] ?? 0) }}</div>
+                <small class="text-muted">{{ number_format($activityLogs) }} all time</small>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="p-3 bg-light rounded-4 border">
+                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Business Logins</small>
+                <div class="fs-3 fw-bold text-success font-mono mt-1">{{ number_format($businessSummary['business_logins'] ?? 0) }}</div>
+                <small class="text-muted">User sessions</small>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="p-3 bg-light rounded-4 border">
+                <small class="text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">API Calls Consumed</small>
+                <div class="fs-3 fw-bold text-info font-mono mt-1">{{ number_format($businessSummary['business_api_count'] ?? 0) }}</div>
+                <small class="text-muted">API hits</small>
+            </div>
+        </div>
+    </div>
+</div>
 
-</html>
+<!-- Telemetry Breakdown & Hourly Stats -->
+<div class="row g-4 mb-4">
+    <!-- Top Pulse Types -->
+    <div class="col-lg-6">
+        <div class="card card-custom p-4 h-100">
+            <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-pie-chart text-primary me-2"></i>Pulse Telemetry Distribution</h5>
+            @if($pulseTypes->isEmpty())
+                <div class="text-center py-4 text-muted small bg-light rounded-3 border">No pulse records captured yet.</div>
+            @else
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle font-mono small mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Recorder Type</th>
+                                <th class="text-end">Total Hits</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($pulseTypes as $item)
+                                <tr>
+                                    <td><span class="badge bg-light text-dark border font-mono">{{ $item->type }}</span></td>
+                                    <td class="text-end fw-bold text-dark">{{ number_format($item->total) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <!-- Hourly Distribution -->
+    <div class="col-lg-6">
+        <div class="card card-custom p-4 h-100">
+            <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-clock text-info me-2"></i>Hourly Telemetry Velocity</h5>
+            @if($hourlyStats->isEmpty())
+                <div class="text-center py-4 text-muted small bg-light rounded-3 border">No hourly data available yet.</div>
+            @else
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle font-mono small mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Hour of Day (UTC)</th>
+                                <th class="text-end">Events Logged</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($hourlyStats as $hour)
+                                <tr>
+                                    <td>{{ sprintf('%02d:00', $hour->hour) }} - {{ sprintf('%02d:59', $hour->hour) }}</td>
+                                    <td class="text-end fw-bold text-primary">{{ number_format($hour->total) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+
+<!-- Recent Records Tables -->
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card card-custom p-4 h-100">
+            <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-list-check text-secondary me-2"></i>Latest Pulse Entries</h5>
+            @if($latestEntries->isEmpty())
+                <div class="text-center py-4 text-muted small bg-light rounded-3 border">No entries recorded.</div>
+            @else
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle font-mono small mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Type</th>
+                                <th>Key</th>
+                                <th class="text-end">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($latestEntries as $entry)
+                                <tr>
+                                    <td><span class="badge bg-light text-dark border">{{ $entry->type }}</span></td>
+                                    <td><code class="text-dark small text-truncate d-inline-block" style="max-width: 200px;">{{ $entry->key }}</code></td>
+                                    <td class="text-end fw-bold">{{ $entry->value }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card card-custom p-4 h-100">
+            <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-cursor-fill text-primary me-2"></i>Recent Activity Logs</h5>
+            @if($latestActivities->isEmpty())
+                <div class="text-center py-4 text-muted small bg-light rounded-3 border">No activity logged.</div>
+            @else
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle font-mono small mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Method</th>
+                                <th>URL Path</th>
+                                <th class="text-end">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($latestActivities as $act)
+                                <tr>
+                                    <td><span class="badge bg-secondary">{{ $act->method }}</span></td>
+                                    <td><code>{{ $act->url }}</code></td>
+                                    <td class="text-end text-muted small">{{ \Carbon\Carbon::parse($act->created_at)->diffForHumans() }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+
+@endsection
